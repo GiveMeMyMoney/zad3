@@ -109,6 +109,7 @@ class RestaurantManagement implements RestaurantManagementInterface {
      * @param waiter obiekt-kelner, który przestaje
      * obs³ugiwaæ klientów.
      */
+    //TODO a moze to jest zrobione? - Kelner chc¹c zakoñczyæ pracê najpierw wykonuje metodê removeWaiter a potem potwierdza wykonanie powierzonej mu pracy. W ten sposób RM bêdzie wiedzieæ o zakoñczeniu pracy przez kelnera przed mo¿liwoœci¹ zlecenia mu wykonania kolejnej pracy.
     @Override
     public void removeWaiter(WaiterInterface waiter) {
         synchronized (waitingForWaiterHelper) {
@@ -167,7 +168,9 @@ class RestaurantManagement implements RestaurantManagementInterface {
                     synchronized (waitingForOrderCompleteHelper) {
                         orderWaitingForGoQueue.remove(new Order(orderID, tableID)); // usuniecie zamowienia z listy buforowej
                         maxMealCountInProgress.decrementAndGet();
+                        disTerminate(); //kelner dostarczyl posilek
                     }
+
                 }
             };
 
@@ -184,7 +187,10 @@ class RestaurantManagement implements RestaurantManagementInterface {
                         }
                     }
                     Order order = orderWaitingForGoQueue.poll();
+                    this.terminate(); // wyslanie kelnera z posilkiem GO
                     waiter.go(order.getOrderId(), order.getTableId());
+                    //TODO Ci co maj¹ GO nie mog¹ nic robiæ bo chodz¹ i roznosz¹ dopiero zwalniaja sie przy orderComplete
+                    //TODO orderComplete gdy wykona siê go + QueueDoOrderow ktore sa w trakcie GO...
                 } catch (InterruptedException e) {
                     System.out.println("InterruptedException dla Kelnera: " + e.getMessage());
                 }
